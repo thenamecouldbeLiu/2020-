@@ -110,11 +110,11 @@ class YoutubeScraper(object):
         keep_scroll = True
         while keep_scroll:
             cur_height = self.driver.execute_script("return document.documentElement.scrollHeight;")
-            print("cur:", cur_height)
+            #print("cur:", cur_height)
             wait.until(EC.visibility_of_element_located((By.TAG_NAME, "body"))).send_keys(Keys.END)
             time.sleep(10)
             check_height = self.driver.execute_script("return document.documentElement.scrollHeight;")
-            print("check:", check_height)
+            #print("check:", check_height)
             if cur_height == check_height:
                 break
 
@@ -130,7 +130,12 @@ class YoutubeScraper(object):
                 webdriver.ActionChains(self.driver).move_to_element(button).click(button).perform()
             except:
                 pass
-        for comment in wait.until(EC.presence_of_all_elements_located((By.CSS_SELECTOR, "#content-text"))):
+        counter =1
+        all_comments = wait.until(EC.presence_of_all_elements_located((By.CSS_SELECTOR, "#content-text")))
+        for comment in all_comments:
+
+            print(counter,"/", len(all_comments))
+            counter +=1
             print(comment.text)
             data.append(comment.text)
         """
@@ -159,8 +164,8 @@ class YoutubeScraper(object):
 
 
 
-    def run(self, number_of_post =10):
-
+    def run(self):
+        self.targetFileReader()
         while len(self.target_pages):
             cur_page = self.target_pages.pop()
             self.goVideoPage(cur_page)
