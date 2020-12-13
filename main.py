@@ -41,8 +41,8 @@ class YoutubeScraper(object):
         options.add_experimental_option("prefs", prefs)
         options.add_argument("disable-infobars")
         options.add_argument("--mute-audio")
-        options.add_argument('--headless')  # 啟動無頭模式
-        options.add_argument('--disable-gpu')  # windowsd必須加入此行
+        #options.add_argument('--headless')  # 啟動無頭模式
+        #options.add_argument('--disable-gpu')  # windowsd必須加入此行
         self.driver = webdriver.Chrome(options=options)
         self.driver.implicitly_wait(5)
 
@@ -110,11 +110,11 @@ class YoutubeScraper(object):
         keep_scroll = True
         while keep_scroll:
             cur_height = self.driver.execute_script("return document.documentElement.scrollHeight;")
-            #print("cur:", cur_height)
+            print("cur:", cur_height)
             wait.until(EC.visibility_of_element_located((By.TAG_NAME, "body"))).send_keys(Keys.END)
             time.sleep(10)
             check_height = self.driver.execute_script("return document.documentElement.scrollHeight;")
-            #print("check:", check_height)
+            print("check:", check_height)
             if cur_height == check_height:
                 break
 
@@ -128,28 +128,27 @@ class YoutubeScraper(object):
         for button in all_more_comment_button:
             try:
                 webdriver.ActionChains(self.driver).move_to_element(button).click(button).perform()
+                time.sleep(1)
             except:
                 pass
+
+        from collections import deque
         counter =1
         all_comments = wait.until(EC.presence_of_all_elements_located((By.CSS_SELECTOR, "#content-text")))
-        for comment in all_comments:
-
+        all_comments = deque(all_comments)
+        while len(all_comments):
+            comment = all_comments.popleft()
+            #每找50筆存一次
+            if counter/50 ==0:
+                res = IndividualScraperResult(video_name=video_name, url=url, view_num=view_num, like=like,
+                                              dislike=dislike, time_stamp=time_stamp, reply=data)
+                self.getDataFrame(res.getResult())
+                self.getFinalResult()
+                data =[]
             print(counter,"/", len(all_comments))
             counter +=1
             print(comment.text)
             data.append(comment.text)
-        """
-        res_dict = {
-            "video_name" : video_name,
-            "url" : url,
-            "view": view_num,
-            "like": like,
-            "dislike": dislike,
-            "timestamp":time_stamp,
-            "reply": data
-
-        }"""
-
 
         res = IndividualScraperResult(video_name = video_name, url =url, view_num = view_num, like = like,
                                       dislike = dislike, time_stamp = time_stamp, reply =data)
@@ -159,7 +158,14 @@ class YoutubeScraper(object):
 
         for col in self.final_DF.columns:
             print(self.final_DF.loc[:,col].head())
-        self.final_DF.to_excel("youtube_scraper_result.xlsx")
+        try:
+            #如果已經有excel檔案，讀取接在尾巴儲存
+            cur_cxcel = pd.read_excel("youtube_scraper_result.xlsx")
+            cur_cxcel = pd.concat(cur_cxcel, self.final_DF)
+            cur_cxcel.to_excel("youtube_scraper_result.xlsx")
+        except:
+            
+            self.final_DF.to_excel("youtube_scraper_result.xlsx")
 
 
 
