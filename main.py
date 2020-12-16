@@ -185,13 +185,12 @@ class YoutubeScraper(object):
 
     def getFinalResult(self):
 
-        for col in self.final_DF.columns:
-            print(self.final_DF.loc[:,col].head())
+        print(self.final_DF.head())
         try:
             #如果已經有excel檔案，讀取接在尾巴儲存
 
             cur_cxcel = pd.read_excel("youtube_scraper_result.xlsx")
-            cur_cxcel = pd.concat(cur_cxcel, self.final_DF)
+            cur_cxcel = pd.concat([cur_cxcel, self.final_DF])
 
             cur_cxcel.to_excel("youtube_scraper_result.xlsx")
 
@@ -214,6 +213,7 @@ class YoutubeScraper(object):
                     self.getContent()
                     self.getFinalResult()
                     self.scrapedUrlWriter(cur_page)
+                    print("Successfully Scraped "+ cur_page)
                 except Exception as e:
                     print("Scraper ends early since Error below")
 
