@@ -152,9 +152,10 @@ class YoutubeScraper(object):
             #print(comment.text)
             data.append(comment.text)
 
-        res = IndividualScraperResult(video_name = video_name, url =url, view_num = view_num, like = like,
-                                      dislike = dislike, time_stamp = time_stamp, reply =data)
-        self.getDataFrame(res.getResult())
+        if len(data) != 0:
+            res = IndividualScraperResult(video_name = video_name, url =url, view_num = view_num, like = like,
+                                          dislike = dislike, time_stamp = time_stamp, reply =data)
+            self.getDataFrame(res.getResult())
 
     def getFinalResult(self):
 
@@ -162,16 +163,13 @@ class YoutubeScraper(object):
             print(self.final_DF.loc[:,col].head())
         try:
             #如果已經有excel檔案，讀取接在尾巴儲存
+
             cur_cxcel = pd.read_excel("youtube_scraper_result.xlsx")
             cur_cxcel = pd.concat(cur_cxcel, self.final_DF)
 
             cur_cxcel.to_excel("youtube_scraper_result.xlsx")
         except:
-
             self.final_DF.to_excel("youtube_scraper_result.xlsx")
-
-
-
 
     def run(self):
         self.targetFileReader()
@@ -180,6 +178,7 @@ class YoutubeScraper(object):
                 cur_page = self.target_pages.pop()
                 self.goVideoPage(cur_page)
                 self.getContent()
+                self.getFinalResult()
             except Exception as e:
                 print("Scraper ends early since Error below")
 
