@@ -26,6 +26,7 @@ class YoutubeScraper(object):
 
     def __init__(self, target_pages = ["https://www.youtube.com/watch?v=C4Z9BtKIu0w"], infinite_scroll =0, num_of_post =10):
         self.target_pages = target_pages
+        self.scraped_pages = []
         self.email = ""
         self.pwd = ""
         self.result ={}
@@ -63,6 +64,31 @@ class YoutubeScraper(object):
         #去掉換行字元
         for i in range(len(self.target_pages)):
             self.target_pages[i] = self.target_pages[i].strip("\n")
+
+    def scrapedUrlReader(self, file = "scraped.txt"):
+        try:
+            with open(file, "r") as pages:
+                self.scraped_pages = pages.readlines()
+                for i in range(len(self.scraped_pages)):
+                    self.scraped_pages[i] = self.scraped_pages[i].strip("\n")
+
+        except:
+            new_scraped_file = open(file, "w")
+            new_scraped_file.close()
+
+    def scrapedUrlWriter(self, url, file="scraped.txt"):
+        with open(file, "a") as pages:
+            pages.write(url+"\n")
+
+
+
+    def isScraped(self, url):
+        if url in self.scraped_pages:
+            return True
+
+        else:
+            return False
+
 
 
     def goVideoPage(self, page):
@@ -168,36 +194,47 @@ class YoutubeScraper(object):
             cur_cxcel = pd.concat(cur_cxcel, self.final_DF)
 
             cur_cxcel.to_excel("youtube_scraper_result.xlsx")
+
+            #清空原本的紀錄
+            self.final_DF = pd.DataFrame()
         except:
             self.final_DF.to_excel("youtube_scraper_result.xlsx")
 
     def run(self):
         self.targetFileReader()
+        self.scrapedUrlReader()
+
         while len(self.target_pages):
-            try:
-                cur_page = self.target_pages.pop()
-                self.goVideoPage(cur_page)
-                self.getContent()
-                self.getFinalResult()
-            except Exception as e:
-                print("Scraper ends early since Error below")
+            cur_page = self.target_pages.pop()
+            if not self.isScraped(cur_page):
 
-                import sys
-                import traceback
-                #    print(e)
-                error_class = e.__class__.__name__  # 取得錯誤類型
-                detail = e.args[0]  # 取得詳細內容
-                cl, exc, tb = sys.exc_info()  # 取得Call Stack
-                lastCallStack = traceback.extract_tb(tb)[-1]  # 取得Call Stack的最後一筆資料
-                fileName = lastCallStack[0]  # 取得發生的檔案名稱
-                lineNum = lastCallStack[1]  # 取得發生的行號
-                funcName = lastCallStack[2]  # 取得發生的函數名稱
-                errMsg = "File \"{}\", line {}, in {}: [{}] {}".format(fileName, lineNum, funcName, error_class, detail)
-                print(errMsg)
+                try:
 
-                self.getFinalResult()
+                    self.goVideoPage(cur_page)
+                    self.getContent()
+                    self.getFinalResult()
+                    self.scrapedUrlWriter(cur_page)
+                except Exception as e:
+                    print("Scraper ends early since Error below")
+
+                    import sys
+                    import traceback
+                    #    print(e)
+                    error_class = e.__class__.__name__  # 取得錯誤類型
+                    detail = e.args[0]  # 取得詳細內容
+                    cl, exc, tb = sys.exc_info()  # 取得Call Stack
+                    lastCallStack = traceback.extract_tb(tb)[-1]  # 取得Call Stack的最後一筆資料
+                    fileName = lastCallStack[0]  # 取得發生的檔案名稱
+                    lineNum = lastCallStack[1]  # 取得發生的行號
+                    funcName = lastCallStack[2]  # 取得發生的函數名稱
+                    errMsg = "File \"{}\", line {}, in {}: [{}] {}".format(fileName, lineNum, funcName, error_class, detail)
+                    print(errMsg)
+
+                    self.getFinalResult()
+            else:
+                print("This page has been scraped: ", cur_page)
         self.driver.quit()
-        self.getFinalResult()
+        #self.getFinalResult()
         print("Finished scraping")
 """            
         except Exception as e:
