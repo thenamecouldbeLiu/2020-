@@ -152,6 +152,7 @@ class YoutubeScraper(object):
         #"#text.style-scope.ytd-button-renderer"
         all_more_comment_button = self.driver.find_elements_by_xpath(more_comment_class)
         #打開每個更多回應
+        print("clicking more comments button")
         for button in all_more_comment_button:
             try:
                 webdriver.ActionChains(self.driver).move_to_element(button).click(button).perform()
@@ -167,7 +168,7 @@ class YoutubeScraper(object):
         while len(all_comments):
             comment = all_comments.popleft()
             #每找50筆存一次
-            if counter/50 ==0:
+            if counter/500 ==0:
                 res = IndividualScraperResult(video_name=video_name, url=url, view_num=view_num, like=like,
                                               dislike=dislike, time_stamp=time_stamp, reply=data)
                 self.getDataFrame(res.getResult())
