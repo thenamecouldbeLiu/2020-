@@ -183,20 +183,35 @@ class YoutubeScraper(object):
                                           dislike = dislike, time_stamp = time_stamp, reply =data)
             self.getDataFrame(res.getResult())
 
+    def getError(self, e):
+        import sys
+        import traceback
+        #    print(e)
+        error_class = e.__class__.__name__  # 取得錯誤類型
+        detail = e.args[0]  # 取得詳細內容
+        cl, exc, tb = sys.exc_info()  # 取得Call Stack
+        lastCallStack = traceback.extract_tb(tb)[-1]  # 取得Call Stack的最後一筆資料
+        fileName = lastCallStack[0]  # 取得發生的檔案名稱
+        lineNum = lastCallStack[1]  # 取得發生的行號
+        funcName = lastCallStack[2]  # 取得發生的函數名稱
+        errMsg = "File \"{}\", line {}, in {}: [{}] {}".format(fileName, lineNum, funcName, error_class, detail)
+        print(errMsg)
+
     def getFinalResult(self):
 
         print(self.final_DF.head())
         try:
             #如果已經有excel檔案，讀取接在尾巴儲存
 
-            cur_cxcel = pd.read_excel("youtube_scraper_result.xlsx")
+            cur_cxcel = pd.read_excel("youtube_scraper_result.xlsx", engine='openpyxl')
             cur_cxcel = pd.concat([cur_cxcel, self.final_DF])
-
+            print("found excel and concated")
             cur_cxcel.to_excel("youtube_scraper_result.xlsx")
 
             #清空原本的紀錄
             self.final_DF = pd.DataFrame()
-        except:
+        except Exception as e:
+            self.getError(e)
             self.final_DF.to_excel("youtube_scraper_result.xlsx")
 
     def run(self):
@@ -214,21 +229,10 @@ class YoutubeScraper(object):
                     self.getFinalResult()
                     self.scrapedUrlWriter(cur_page)
                     print("Successfully Scraped "+ cur_page)
+
                 except Exception as e:
                     print("Scraper ends early since Error below")
-
-                    import sys
-                    import traceback
-                    #    print(e)
-                    error_class = e.__class__.__name__  # 取得錯誤類型
-                    detail = e.args[0]  # 取得詳細內容
-                    cl, exc, tb = sys.exc_info()  # 取得Call Stack
-                    lastCallStack = traceback.extract_tb(tb)[-1]  # 取得Call Stack的最後一筆資料
-                    fileName = lastCallStack[0]  # 取得發生的檔案名稱
-                    lineNum = lastCallStack[1]  # 取得發生的行號
-                    funcName = lastCallStack[2]  # 取得發生的函數名稱
-                    errMsg = "File \"{}\", line {}, in {}: [{}] {}".format(fileName, lineNum, funcName, error_class, detail)
-                    print(errMsg)
+                    self.getError(e)
 
                     self.getFinalResult()
             else:
@@ -236,20 +240,6 @@ class YoutubeScraper(object):
         self.driver.quit()
         #self.getFinalResult()
         print("Finished scraping")
-"""            
-        except Exception as e:
-            import sys
-            import traceback
-            #    print(e)
-            error_class = e.__class__.__name__  # 取得錯誤類型
-            detail = e.args[0]  # 取得詳細內容
-            cl, exc, tb = sys.exc_info()  # 取得Call Stack
-            lastCallStack = traceback.extract_tb(tb)[-1]  # 取得Call Stack的最後一筆資料
-            fileName = lastCallStack[0]  # 取得發生的檔案名稱
-            lineNum = lastCallStack[1]  # 取得發生的行號
-            funcName = lastCallStack[2]  # 取得發生的函數名稱
-            errMsg = "File \"{}\", line {}, in {}: [{}] {}".format(fileName, lineNum, funcName, error_class, detail)
-            print(errMsg)"""
 
 
 
