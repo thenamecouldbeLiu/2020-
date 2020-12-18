@@ -203,7 +203,7 @@ class YoutubeScraper(object):
         try:
             #如果已經有excel檔案，讀取接在尾巴儲存
 
-            cur_cxcel = pd.read_excel("youtube_scraper_result.xlsx", engine='openpyxl')
+            cur_cxcel = pd.read_excel("youtube_scraper_result.xlsx",index_col=0, engine='openpyxl')
             cur_cxcel = pd.concat([cur_cxcel, self.final_DF])
             print("found excel and concated")
             cur_cxcel.to_excel("youtube_scraper_result.xlsx")
